@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prefects Suggestions</title>
+    <style>
+        body {
+            min-height: 100vh;
+            background: #f0f2f5;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #1a237e;
+        }
+        .navbar {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 0.5rem 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 80vh;
+            padding-top: 40px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 32px;
+            color: #1a237e;
+        }
+        .newsletter-list {
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            padding: 32px 24px;
+        }
+        .suggestion-block {
+            font-size: 17px;
+            color: #1a237e;
+            padding: 12px 0 36px 0;
+            word-break: break-word;
+            position: relative;
+            min-height: 48px;
+        }
+        .like-area {
+            position: absolute;
+            left: 0;
+            bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .like-btn {
+            background: #ff9800;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .like-count {
+            font-size: 14px;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .most-liked {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+        }
+        .more-link {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            color: #007bff;
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 0;
+        }
+        .empty-message {
+            color: #888;
+            text-align: center;
+            padding: 32px 0;
+            font-size: 18px;
+        }
+        footer {
+            background: #fff;
+            padding: 16px 0;
+            text-align: center;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+            margin-top: 40px;
+        }
+        footer .container {
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        @media (max-width: 700px) {
+            .newsletter-list {
+                width: 98%;
+                padding: 16px 4px;
+            }
+            .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container"></div>
+    </nav>
+    <main>
+        <h1>Prefects Suggestions</h1>
+        <div class="newsletter-list" id="newsletterList"></div>
+    </main>
+    <footer>
+        <div class="container"></div>
+    </footer>
+    <script>
+        const key = 'studentSuggestions';
+        const likesKey = 'suggestionLikes';
+        const suggestions = JSON.parse(localStorage.getItem(key) || '[]');
+        const likes = JSON.parse(localStorage.getItem(likesKey) || '{}');
+        const list = document.getElementById('newsletterList');
+
+        // Find the index(es) with the most likes
+        let maxLikes = 0;
+        let mostLikedIndexes = [];
+        suggestions.forEach((_, idx) => {
+            const count = likes[idx] || 0;
+            if (count > maxLikes) {
+                maxLikes = count;
+                mostLikedIndexes = [idx];
+            } else if (count === maxLikes && count > 0) {
+                mostLikedIndexes.push(idx);
+            }
+        });
+
+        function renderSuggestions() {
+            list.innerHTML = '';
+            if (suggestions.length > 0) {
+                suggestions.forEach((text, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-block';
+                    if (mostLikedIndexes.includes(idx) && maxLikes > 0) {
+                        div.classList.add('most-liked');
+                    }
+                    div.innerHTML = `<strong>${idx + 1}.</strong> ${text}`;
+
+                    // Like area
+                    const likeArea = document.createElement('div');
+                    likeArea.className = 'like-area';
+
+                    const likeBtn = document.createElement('button');
+                    likeBtn.className = 'like-btn';
+                    likeBtn.textContent = 'Like';
+
+                    const likeCount = document.createElement('span');
+                    likeCount.className = 'like-count';
+                    likeCount.textContent = likes[idx] ? likes[idx] : 0;
+
+                    // Disable like if already liked in this session
+                    if (sessionStorage.getItem(key + '_liked_' + idx)) {
+                        likeBtn.disabled = true;
+                        likeBtn.textContent = 'Liked';
+                        likeBtn.style.background = '#bdbdbd';
+                    }
+
+                    likeBtn.onclick = function() {
+                        likes[idx] = (likes[idx] || 0) + 1;
+                        localStorage.setItem(likesKey, JSON.stringify(likes));
+                        sessionStorage.setItem(key + '_liked_' + idx, '1');
+                        renderSuggestions();
+                    };
+
+                    likeArea.appendChild(likeBtn);
+                    likeArea.appendChild(likeCount);
+
+                    div.appendChild(likeArea);
+
+                    // More link at bottom right
+                    const more = document.createElement('a');
+                    more.textContent = 'More';
+                    more.className = 'more-link';
+                    more.href = `suggestion.html?idx=${idx}`;
+                    div.appendChild(more);
+
+                    list.appendChild(div);
+                    if (idx < suggestions.length - 1) {
+                        const hr = document.createElement('hr');
+                        list.appendChild(hr);
+                    }
+                });
+            } else {
+                list.innerHTML = '<div class="empty-message">No suggestions submitted yet.</div>';
+            }
+        }
+
+        renderSuggestions();
+    </script>
+</body>
+</html>

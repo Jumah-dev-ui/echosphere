@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Suggestion Details</title>
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+        .suggestion-box {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 90vw;
+            text-align: center;
+        }
+        .suggestion-box h2 {
+            color: #28a745;
+            margin-top: 0;
+        }
+        .suggestion-message {
+            font-size: 18px;
+            color: #333;
+            margin: 24px 0 0 0;
+            word-break: break-word;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 32px;
+            color: #007bff;
+            text-decoration: underline;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="suggestion-box">
+        <h2>Suggestion Details</h2>
+        <div class="suggestion-message" id="suggestionMessage"></div>
+        <a href="prefects.html" class="back-link">Back to Suggestions</a>
+    </div>
+    <script>
+        // Get index from URL
+        const params = new URLSearchParams(window.location.search);
+        const idx = parseInt(params.get('idx'), 10);
+        const suggestions = JSON.parse(localStorage.getItem('studentSuggestions') || '[]');
+        const message = (Number.isInteger(idx) && suggestions[idx]) ? suggestions[idx] : "Suggestion not found.";
+        document.getElementById('suggestionMessage').textContent = message;
+    </script>
+</body>
+</html>
